@@ -1,0 +1,215 @@
+#include "ItemInfo.h"
+#include "../Math/Random.h"
+#include "../Proton/ProtonUtils.h"
+
+ItemInfo::ItemInfo() {}
+
+void ItemInfo::Serialize(MemoryBuffer& memBuffer, bool write, bool database, uint16 version)
+{
+    memBuffer.ReadWrite(id, write);
+
+    memBuffer.ReadWrite(flags, write);
+    memBuffer.ReadWrite(type, write);
+    memBuffer.ReadWrite(material, write);
+
+    if (version < 3)
+    {
+        memBuffer.ReadWriteString(name, write);
+    }
+    else
+    {
+        if (write)
+        {
+            string writeName = XorCipherString(name, "PBG892FXX982ABC*", id);
+            memBuffer.WriteStringRaw(writeName);
+        }
+        else
+        {
+            memBuffer.ReadStringRaw(name);
+            name = XorCipherString(name, "PBG892FXX982ABC*", id);
+        }
+    }
+
+    memBuffer.ReadWriteString(textureFile, write);
+    memBuffer.ReadWrite(textureHash, write);
+    memBuffer.ReadWrite(visualEffect, write);
+    memBuffer.ReadWrite(cookingTime, write);
+    memBuffer.ReadWrite(textureX, write);
+    memBuffer.ReadWrite(textureY, write);
+    memBuffer.ReadWrite(storage, write);
+    memBuffer.ReadWrite(layer, write);
+    memBuffer.ReadWrite(collisionType, write);
+    memBuffer.ReadWrite(hp, write);
+    memBuffer.ReadWrite(restoreTime, write);
+    memBuffer.ReadWrite(bodyPart, write);
+    memBuffer.ReadWrite(rarity, write);
+    memBuffer.ReadWrite(maxCanHold, write);
+    memBuffer.ReadWriteString(extraString, write);
+    memBuffer.ReadWrite(extraStringHash, write);
+    memBuffer.ReadWrite(animMS, write);
+
+    if (version > 3)
+    {
+        memBuffer.ReadWriteString(petName, write);
+        memBuffer.ReadWriteString(petSubName, write);
+        memBuffer.ReadWriteString(petEndName, write);
+    }
+
+    if (version > 4)
+    {
+        memBuffer.ReadWriteString(petPowerName, write);
+    }
+
+    memBuffer.ReadWrite(seedBg, write);
+    memBuffer.ReadWrite(seedFg, write);
+    memBuffer.ReadWrite(treeBg, write);
+    memBuffer.ReadWrite(treeFg, write);
+
+    memBuffer.ReadWrite(seedBgColor, write);
+    memBuffer.ReadWrite(seedFgColor, write);
+
+    uint16 temp = 0;
+    memBuffer.ReadWrite(temp, write);
+    memBuffer.ReadWrite(temp, write);
+
+    memBuffer.ReadWrite(growTime, write);
+
+    if (version > 6)
+    {
+        memBuffer.ReadWrite(fxFlags, write);
+        memBuffer.ReadWriteString(multiAnim1, write);
+    }
+
+    if (version > 7)
+    {
+        memBuffer.ReadWriteString(overlayTextureFile, write);
+        memBuffer.ReadWriteString(multiAnim2, write);
+        memBuffer.ReadWrite(dualAnimLayer, write);
+    }
+
+    if (version > 8)
+    {
+        memBuffer.ReadWrite(flags2, write);
+        memBuffer.ReadWriteRaw(clientData, sizeof(clientData), write);
+    }
+
+    if (version > 9)
+    {
+        memBuffer.ReadWrite(tileRange, write);
+        memBuffer.ReadWrite(pileSize, write);
+    }
+
+    if (version > 10)
+    {
+        memBuffer.ReadWriteString(customizedPunchParameters, write);
+    }
+
+    if (version > 11)
+    {
+        memBuffer.ReadWrite(extraSlotCounter, write);
+        memBuffer.ReadWriteRaw(extraSlotBodyParts, sizeof(extraSlotBodyParts), write);
+    }
+
+    if (version > 12)
+    {
+        memBuffer.ReadWrite(lightSourceRange, write);
+    }
+
+    if (version > 13)
+    {
+        memBuffer.ReadWrite(variantVersionItem, write);
+    }
+
+    if (version > 14)
+    {
+        memBuffer.ReadWrite(chairInfo.enabled, write);
+        memBuffer.ReadWrite(chairInfo.playerOffset, write);
+        memBuffer.ReadWrite(chairInfo.armPos, write);
+        memBuffer.ReadWrite(chairInfo.armOffset, write);
+        memBuffer.ReadWriteString(chairInfo.armTexture, write);
+    }
+
+    if (version > 15)
+    {
+        memBuffer.ReadWriteString(configName, write);
+    }
+
+    if (version > 16)
+    {
+        memBuffer.ReadWrite(otherPlayerHitParticle, write);
+    }
+
+    if (version > 17)
+    {
+        memBuffer.ReadWrite(configNameHash, write);
+    }
+
+    if (version > 18)
+    {
+        memBuffer.ReadWrite(randomSpriteInfo.enabled, write);
+        memBuffer.ReadWrite(randomSpriteInfo.offsetMod, write);
+        memBuffer.ReadWrite(randomSpriteInfo.chance, write);
+    }
+
+    if (version > 19)
+    {
+        // HEAD, FACE, BODY, FRONT_ARM, BACK_ARM, LEGS
+        memBuffer.ReadWrite(hiddenPartsFlags, write);
+    }
+
+    if (version > 20)
+    {
+        memBuffer.ReadWrite(canTransform, write);
+    }
+
+    if (version > 21)
+    {
+        memBuffer.ReadWriteString(description, write);
+    }
+
+    if (version > 22)
+    {
+        memBuffer.ReadWrite(seed1, write);
+        memBuffer.ReadWrite(seed2, write);
+    }
+
+    if (version > 23)
+    {
+        // NONE, SLIP, NO_SLIP
+        memBuffer.ReadWrite(slipperyType, write);
+    }
+
+    if (version > 24)
+    {
+        string unk;
+        memBuffer.ReadWriteString(unk, write);
+
+        uint32 unk2 = 0;
+        memBuffer.ReadWrite(unk2, write);
+    }
+
+    if (version > 25)
+    {
+        uint8 unk = 0;
+        memBuffer.ReadWrite(unk, write);
+    }
+}
+
+bool IsMainDoor(int16 itemID)
+{
+    switch (itemID)
+    {
+        case ITEM_ID_MAIN_DOOR:
+        case ITEM_ID_STARSHIP_MAIN_DOOR:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+bool IsPathMarker(int16 itemID)
+{
+    return itemID == ITEM_ID_PATH_MARKER || itemID == ITEM_ID_CARNIVAL_LANDING || itemID == ITEM_ID_GRUESOME_MARKER ||
+           itemID == ITEM_ID_OBJECTIVE_MARKER;
+}

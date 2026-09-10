@@ -1,0 +1,95 @@
+#pragma once
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#define pollfd WSAPOLLFD
+#define sys_poll(fds, nfds, timeout) WSAPoll(fds, nfds, timeout)
+#else
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#include <poll.h>
+#define sys_poll(fds, nfds, timeout) poll(fds, nfds, timeout)
+#endif
+
+#ifdef SOCKET_TLS
+#include <openssl/ssl.h>
+#endif
+
+#include "../Event/EventDispatcher.h"
+#include "../Precompiled.h"
+#include "NetClient.h"
+
+bool MakeSocketNonBlocking(socket_t fd);
+void CloseSocket(socket_t fd);
+string GetIPFromSocket(socket_t socket);
+int GetIPStringFromHost(uint32 host, char* buffer, uint32 bufferSize);
+
+bool ParseIPv4(const string& ipStr, uint32& outIPHost);
+bool IsLocalOrInvalidIP(uint32 ip);
+bool IsLocalOrInvalidIP(const string& ipStr);
+string ResolveDNSViaOS(const string& domain);
+
+enum eSocketEventType
+{
+    SOCKET_EVENT_TYPE_CONNECT,
+    SOCKET_EVENT_TYPE_RECEIVE,
+    SOCKET_EVENT_TYPE_DISCONNECT
+};
+
+class NetSocket
+{
+public:
+    typedef EventDispatcher<eSocketEventType, void, NetClient*> SocketEventDispatcher;
+
+public:
+    NetSocket();
+    ~NetSocket();
+
+public:
+    bool Init(const string& host, uint16 port, int32 backLog = 50);
+    int16 Connect(const string& host, uint16 port, bool nonBlocking);
+    void Kill();
+
+    void CreateSSLCtx();
+
+    void Update(bool asClient);
+    void FlushClosedClients();
+
+    void HandleReadIO(NetClient* pClient);
+    void HandleWriteIO(NetClient* pClient);
+
+    void AcceptConnection();
+
+    void CloseClient(uint16 connectionID);
+    void CloseAllClients();
+    NetClient* GetClient(int16 connectionID);
+
+    bool Send(NetClient* pClient, void* pData, uint32 size);
+    SocketEventDispatcher& GetEvents() { return m_events; }
+
+private:
+    NetClient* GetClientByFD(socket_t fd);
+
+private:
+    socket_t m_socket;
+    int16 m_lastConnID;
+
+    SocketEventDispatcher m_events;
+    std::unordered_map<int16, NetClient*> m_clients;
+
+    std::vector<pollfd> m_pollFds;
+    std::vector<NetClient*> m_fdToClient;
+    bool m_isPollDirty = true;
+
+#ifdef SOCKET_USE_TLS
+    SSL_CTX* m_pSslCtx;
+#endif
+};

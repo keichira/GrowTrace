@@ -1,0 +1,299 @@
+#include "ProtonUtils.h"
+
+/**
+ *
+ * TAKEN FROM Seth A. Robinson's ProtonSDK
+ * https://github.com/SethRobinson/proton
+ *
+ */
+
+string XorCipherString(const string& str, const char* secret, int32 id)
+{
+    uint32 secretLen = strlen(secret);
+    id %= secretLen;
+
+    string out = str;
+
+    for (uint32 i = 0; i < str.size(); ++i)
+    {
+        out[i] = (str[i] ^ secret[id++]);
+        if (id >= secretLen)
+        {
+            id = 0;
+        }
+    }
+
+    return out;
+}
+
+uint32 Proton::HashString(const char* str, int32 len)
+{
+    if (!str)
+        return 0;
+
+    unsigned char* n = (unsigned char*)str;
+    uint32 acc = 0x55555555;
+
+    if (len == 0)
+    {
+        while (*n)
+            acc = (acc >> 27) + (acc << 5) + *n++;
+    }
+    else
+    {
+        for (int32 i = 0; i < len; i++)
+        {
+            acc = (acc >> 27) + (acc << 5) + *n++;
+        }
+    }
+    return acc;
+}
+
+uint8 Proton::ConvertVariantToProtonType(eVariantTypes type)
+{
+    switch (type)
+    {
+        case VARIANT_TYPE_UINT:
+            return 5;
+        case VARIANT_TYPE_INT:
+            return 9;
+        case VARIANT_TYPE_FLOAT:
+            return 1;
+        case VARIANT_TYPE_STRING:
+            return 2;
+        case VARIANT_TYPE_VECTOR2INT:
+        case VARIANT_TYPE_VECTOR2FLOAT:
+            return 3;
+        case VARIANT_TYPE_VECTOR3INT:
+        case VARIANT_TYPE_VECTOR3FLOAT:
+            return 4;
+
+        default:
+            return 0;
+    }
+}
+
+uint8 Proton::ConvertProtonToVariantType(int32 type)
+{
+    switch (type)
+    {
+        case 5:
+            return VARIANT_TYPE_UINT;
+        case 9:
+            return VARIANT_TYPE_INT;
+        case 1:
+            return VARIANT_TYPE_FLOAT;
+        case 2:
+            return VARIANT_TYPE_STRING;
+        case 3:
+            return VARIANT_TYPE_VECTOR2FLOAT;
+        case 4:
+            return VARIANT_TYPE_VECTOR3FLOAT;
+
+        default:
+            return VARIANT_TYPE_NONE;
+    }
+}
+
+uint8* Proton::SerializeToMem(const VariantVector& varVector, uint32* pSizeOut, uint8* pDest)
+{
+    int varsUsed = 0;
+    int memNeeded = 0;
+
+    int tempSize;
+
+    for (int i = 0; i < varVector.size(); ++i)
+    {
+        if (varVector[i].GetType() == VARIANT_TYPE_STRING)
+        {
+            tempSize = (int)varVector[i].GetString().size() +
+                       4; // the 4 is for an int showing how long the string will be when writing
+        }
+        else
+        {
+            tempSize = varVector[i].GetSize();
+        }
+
+        if (tempSize > 0)
+        {
+            varsUsed++;
+            memNeeded += tempSize;
+        }
+    }
+
+    int totalSize = memNeeded + 1 + (varsUsed * 2);
+
+    if (!pDest)
+    {
+        pDest = new uint8[totalSize]; // 1 is to write how many are coming
+    }
+
+    // write it
+
+    uint8* pCur = pDest;
+
+    pCur[0] = uint8(varsUsed);
+    pCur++;
+
+    uint8 type;
+
+    for (int i = 0; i < varVector.size(); ++i)
+    {
+        if (varVector[i].GetType() == VARIANT_TYPE_STRING)
+        {
+            type = i;
+            memcpy(pCur, &type, 1);
+            pCur += 1; // index
+
+            type = ConvertVariantToProtonType(VARIANT_TYPE_STRING);
+            memcpy(pCur, &type, 1);
+            pCur += 1; // type
+
+            uint32 s = (int)varVector[i].GetString().size();
+            memcpy(pCur, &s, 4);
+            pCur += 4; // length of string
+            memcpy(pCur, varVector[i].GetString().c_str(), s);
+            pCur += s; // actual string data
+        }
+        else
+        {
+            tempSize = varVector[i].GetSize();
+
+            if (tempSize > 0)
+            {
+                type = i;
+                memcpy(pCur, &type, 1);
+                pCur += 1; // index
+
+                type = ConvertVariantToProtonType(varVector[i].GetType());
+                memcpy(pCur, &type, 1);
+                pCur += 1; // type
+
+                auto varValue = varVector[i].GetValue();
+                memcpy(pCur, &varValue, tempSize);
+                pCur += tempSize;
+            }
+        }
+    }
+
+    *pSizeOut = totalSize;
+    return pDest;
+}
+
+bool Proton::SerializeFromMem(uint8* pSrc, int bufferSize, VariantVector& outVarVec, int* pBytesReadOut)
+{
+    uint8* pStartPos = pSrc;
+    uint8 count = pSrc[0];
+    pSrc++;
+
+    outVarVec.resize(count);
+
+    for (int i = 0; i < count; i++)
+    {
+        uint8 index = pSrc[0];
+        pSrc++;
+        uint8 type = pSrc[0];
+        pSrc++;
+
+        switch (ConvertProtonToVariantType(type))
+        {
+
+            case VARIANT_TYPE_STRING:
+            {
+                uint32 strLen;
+                memcpy(&strLen, pSrc, 4);
+                pSrc += 4;
+
+                string v;
+                v.resize(strLen);
+                memcpy(&v[0], pSrc, strLen);
+                pSrc += strLen;
+                outVarVec[i] = v;
+                break;
+            }
+
+            case VARIANT_TYPE_UINT:
+            {
+                uint32 v;
+                memcpy(&v, pSrc, sizeof(uint32));
+                pSrc += sizeof(uint32);
+                outVarVec[i] = v;
+                break;
+            }
+            case VARIANT_TYPE_INT:
+            {
+                int32 v;
+                memcpy(&v, pSrc, sizeof(int32));
+                pSrc += sizeof(int32);
+                outVarVec[i] = v;
+                break;
+            }
+
+            case VARIANT_TYPE_FLOAT:
+            {
+                float v;
+                memcpy(&v, pSrc, sizeof(float));
+                pSrc += sizeof(float);
+                outVarVec[i] = v;
+                break;
+            }
+
+            case VARIANT_TYPE_VECTOR2FLOAT:
+            {
+                Vector2Float v;
+                memcpy((void*)&v, pSrc, sizeof(Vector2Float));
+                pSrc += sizeof(Vector2Float);
+                outVarVec[i] = v;
+                break;
+            }
+
+            case VARIANT_TYPE_VECTOR3FLOAT:
+            {
+                Vector3Float v;
+                memcpy((void*)&v, pSrc, sizeof(Vector3Float));
+                pSrc += sizeof(Vector3Float);
+                outVarVec[i] = v;
+                break;
+            }
+
+            default:
+                if (pBytesReadOut)
+                    *pBytesReadOut = 0;
+                return false;
+        }
+    }
+
+    if (pBytesReadOut)
+        *pBytesReadOut = (int)(pSrc - pStartPos);
+
+    return true; // success
+}
+
+uint32 Proton::GetMemEstiamte(const VariantVector& varVector)
+{
+    int varsUsed = 0;
+    int memNeeded = 0;
+
+    int tempSize;
+
+    for (int i = 0; i < varVector.size(); ++i)
+    {
+        if (varVector[i].GetType() == VARIANT_TYPE_STRING)
+        {
+            tempSize = (int)varVector[i].GetString().size() +
+                       4; // the 4 is for an int showing how long the string will be when writing
+        }
+        else
+        {
+            tempSize = varVector[i].GetSize();
+        }
+
+        if (tempSize > 0)
+        {
+            varsUsed++;
+            memNeeded += tempSize;
+        }
+    }
+
+    return memNeeded + 1 + (varsUsed * 2);
+}

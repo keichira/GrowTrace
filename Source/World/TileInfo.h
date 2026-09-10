@@ -1,0 +1,105 @@
+#pragma once
+
+#include "../Math/Rect.h"
+#include "../Math/Vector2.h"
+#include "../Memory/MemoryBuffer.h"
+#include "../Precompiled.h"
+#include "../Utils/Timer.h"
+#include "TileExtra.h"
+
+enum eTileFlags
+{
+    TILE_FLAG_HAS_EXTRA_DATA = 1 << 0,
+    TILE_FLAG_HAS_PARENT = 1 << 1,
+    TILE_FLAG_WAS_SPLICED = 1 << 2,
+    TILE_FLAG_WILL_SPAWN_SEEDS_TOO = 1 << 3,
+    TILE_FLAG_IS_SEEDLING = 1 << 4,
+    TILE_FLAG_FLIPPED_X = 1 << 5,
+    TILE_FLAG_IS_ON = 1 << 6,
+    TILE_FLAG_IS_OPEN_TO_PUBLIC = 1 << 7,
+    TILE_FLAG_BG_IS_ON = 1 << 8,
+    TILE_FLAG_FG_ALT_MODE = 1 << 9,
+    TILE_FLAG_IS_WET = 1 << 10,
+    TILE_FLAG_GLUED = 1 << 11,
+    TILE_FLAG_ON_FIRE = 1 << 12,
+    TILE_FLAG_PAINTED_RED = 1 << 13,
+    TILE_FLAG_PAINTED_GREEN = 1 << 14,
+    TILE_FLAG_PAINTED_BLUE = 1 << 15,
+    TILE_FLAG_PAINTED_WHITE = TILE_FLAG_PAINTED_RED | TILE_FLAG_PAINTED_GREEN | TILE_FLAG_PAINTED_BLUE
+};
+
+class WorldTileManager;
+class WorldInfo;
+
+struct TempTileData
+{
+    int16 fg = 0;
+    int16 bg = 0;
+    uint16 parent = 0;
+    uint16 flags = 0;
+};
+
+class TileInfo
+{
+public:
+    TileInfo();
+    ~TileInfo();
+
+public:
+    bool Serialize(MemoryBuffer& memBuffer, bool write, bool database, uint16 worldVersion);
+    uint32 GetMemEstimate(bool database, uint16 worldVersion);
+
+    bool IsCollidable();
+    void BindTileData(TempTileData* pTileData);
+
+    int16 GetFG() const { return m_tileData->fg; }
+    int16 GetBG() const { return m_tileData->bg; }
+    uint16 GetParent() const { return m_tileData->parent; }
+
+    void SetPos(uint16 x, uint16 y)
+    {
+        m_pos.x = x;
+        m_pos.y = y;
+    }
+    Vector2Int& GetPos() { return m_pos; }
+
+    void SetMapIndex(int32 index) { m_index = index; }
+    int32 GetMapIndex() const { return m_index; }
+
+    Vector2Float GetWorldPos() { return Vector2Float(m_pos.x * 32.0f, m_pos.y * 32.0f); }
+    Vector2Float GetWorldPosCenter() { return GetWorldPos() + 16.0f; }
+
+    RectFloat GetRect() { return RectFloat(m_pos.x * 32, m_pos.y * 32, (m_pos.x + 1) * 32, (m_pos.y + 1) * 32); }
+    bool HasFlag(uint16 flag) { return m_tileData->flags & flag; };
+
+    float GetGrowthPercent();
+    void FinalizeGrowth(uint32 ageMS);
+    void ModGrowth(int32 deltaAgeSec, int32 ageSec);
+
+    uint16 GetDisplayedItem();
+    uint8 GetType() const { return m_type; };
+
+    template <class T> T* GetExtra()
+    {
+        if (!m_pExtraData || m_pExtraData->type != T::TYPE)
+        {
+            return nullptr;
+        }
+
+        return static_cast<T*>(m_pExtraData);
+    }
+
+    bool HasExtra() { return m_pExtraData != nullptr; }
+    bool IsTileExtraType(eTileExtraType type);
+
+private:
+    TempTileData* m_tileData;
+    Vector2Int m_pos;
+    int32 m_index;
+
+    uint8 m_damage;
+    Timer m_lastDamageTime;
+    uint8 m_type;
+
+    TileExtra* m_pExtraData;
+};

@@ -1,0 +1,11 @@
+.vscode/*
+Test/*
+
+Build/*
+!Build/*.bat
+!Build/*.sh
+
+Runtime/*
+!Runtime/*.bat
+!Runtime/*.sh
+!Runtime/*.py

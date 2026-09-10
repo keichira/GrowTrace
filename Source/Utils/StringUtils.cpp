@@ -1,0 +1,612 @@
+#include "StringUtils.h"
+
+uint32 HashString(const string& str)
+{
+    return HashString(str.c_str());
+}
+
+uint32 HashString(const char* str, uint32 size)
+{
+    uint32 h = 0x12668559;
+    for (uint32 i = 0; i < size; ++i)
+    {
+        h ^= (uint8)str[i];
+        h *= 0x5bd1e995;
+        h ^= h >> 15;
+    }
+    return h;
+}
+
+uint32 HashString(const char* str)
+{
+    uint32 h = 0x12668559;
+    for (; *str; ++str)
+    {
+        h ^= (uint8)(*str);
+        h *= 0x5bd1e995;
+        h ^= h >> 15;
+    }
+    return h;
+}
+
+string ToHex(const string& str)
+{
+    return ToHex(str.c_str(), str.size());
+}
+
+string ToHex(const void* str, uint32 size)
+{
+    if (!str || size == 0)
+        return "";
+
+    static const char hexChars[] = "0123456789ABCDEF";
+    uint8* bytes = (uint8*)(str);
+
+    string out;
+    out.resize(size * 2);
+
+    for (uint32 i = 0; i < size; ++i)
+    {
+        out[2 * i] = hexChars[(bytes[i] >> 4) & 0x0F];
+        out[2 * i + 1] = hexChars[bytes[i] & 0x0F];
+    }
+
+    return out;
+}
+
+string ToUpper(const string& str)
+{
+    return ToUpper(str.c_str());
+}
+
+string ToUpper(const char* str)
+{
+    if (!str)
+    {
+        return "";
+    }
+
+    const char* src = str;
+    string out;
+
+    while (*src)
+    {
+        if (*src >= 'a' && *src <= 'z')
+        {
+            out += (*src - ('a' - 'A'));
+        }
+        else
+        {
+            out += *src;
+        }
+
+        ++src;
+    }
+
+    return out;
+}
+
+string ToLower(const string& str)
+{
+    return ToLower(str.c_str());
+}
+
+string ToLower(const char* str)
+{
+    if (!str)
+    {
+        return "";
+    }
+
+    const char* src = str;
+    string out;
+
+    while (*src)
+    {
+        if (*src >= 'A' && *src <= 'Z')
+        {
+            out += (*src + ('a' - 'A'));
+        }
+        else
+        {
+            out += *src;
+        }
+
+        ++src;
+    }
+
+    return out;
+}
+
+float ToFloat(const string& str)
+{
+    return ToFloat(str.c_str());
+}
+
+float ToFloat(const char* str)
+{
+    return std::stof(str);
+}
+
+void RemoveExtraWhiteSpaces(string& str)
+{
+    if (str.empty())
+    {
+        return;
+    }
+
+    RemoveExtraWhiteSpaces(&str[0]);
+    str.resize(strlen(&str[0]));
+}
+
+void RemoveExtraWhiteSpaces(char* str)
+{
+    if (!str || *str == '\0')
+    {
+        return;
+    }
+
+    char* src = str;
+    char* out = str;
+
+    if (*src == ' ')
+    {
+        *out++ = ' ';
+
+        while (*src == ' ')
+        {
+            src++;
+        }
+    }
+
+    while (*src)
+    {
+        if (*src != ' ' || (out > str && *(out - 1) != ' '))
+        {
+            *out++ = *src;
+        }
+
+        src++;
+    }
+
+    if (out > str && *(out - 1) == ' ')
+    {
+        out--;
+    }
+
+    *out = '\0';
+}
+
+string TrimLeft(const string& str, const string& trim)
+{
+    usize pos = str.find_first_not_of(trim);
+
+    if (pos == string::npos)
+        return "";
+
+    return str.substr(pos);
+}
+
+string TrimRight(const string& str, const string& trim)
+{
+    string ret = str;
+    usize pos = ret.find_last_not_of(trim);
+
+    if (pos == string::npos)
+        return "";
+
+    return ret.erase(pos + 1);
+}
+
+void StripWhiteSpace(string& str)
+{
+    str = TrimLeft(TrimRight(str, " \t\r\n"), " \t\r\n");
+}
+
+void RemoveGTColorCodes(string& str)
+{
+    RemoveGTColorCodes(&str[0]);
+    str.resize(strlen(&str[0]));
+}
+
+void RemoveGTColorCodes(char* str)
+{
+    if (!str)
+    {
+        return;
+    }
+
+    char* src = str;
+    char* out = str;
+
+    while (*src)
+    {
+        if (*src == '`' && *(src + 1))
+        {
+            src += 2;
+            continue;
+        }
+
+        *out++ = *src++;
+    }
+
+    *out = '\0';
+}
+
+eToIntResult ToInt(const string& str, int32& out, int32 base)
+{
+    return ToInt(str.c_str(), out, base);
+}
+
+eToIntResult ToInt(const char* str, int32& out, int32 base)
+{
+    if (!str)
+    {
+        return TO_INT_FAIL;
+    }
+
+    char* end;
+    errno = 0;
+    long val = std::strtol(str, &end, base);
+
+    if (*str == '\0')
+    {
+        return TO_INT_FAIL;
+    }
+
+    if (errno == ERANGE || val > INT32_MAX)
+    {
+        return TO_INT_OVERFLOW;
+    }
+
+    if (errno == ERANGE || val < INT32_MIN)
+    {
+        return TO_INT_UNDERFLOW;
+    }
+
+    out = (int32)val;
+    return TO_INT_SUCCESS;
+}
+
+eToIntResult ToInt(const char* str, uint32 size, int32& out)
+{
+    if (!str || size == 0)
+        return TO_INT_FAIL;
+
+    uint32 i = 0;
+    bool neg = false;
+
+    if (str[0] == '-')
+    {
+        neg = true;
+        i = 1;
+        if (size == 1)
+            return TO_INT_FAIL;
+    }
+
+    uint64 result = 0;
+
+    for (; i < size; ++i)
+    {
+        char c = str[i];
+
+        if (c < '0' || c > '9')
+            return TO_INT_FAIL;
+
+        result = result * 10 + (c - '0');
+
+        if (!neg && result > INT32_MAX)
+            return TO_INT_OVERFLOW;
+
+        if (neg && result > (uint64)(INT32_MAX) + 1)
+            return TO_INT_OVERFLOW;
+    }
+
+    out = neg ? -(int32)(result) : (int32)(result);
+    return TO_INT_SUCCESS;
+}
+
+eToIntResult ToUInt(const string& str, uint32& out, int32 base)
+{
+    return ToUInt(str.c_str(), out, base);
+}
+
+eToIntResult ToUInt(const char* str, uint32& out, int32 base)
+{
+    if (!str)
+    {
+        return TO_INT_FAIL;
+    }
+
+    if (*str == '-')
+    {
+        return TO_INT_UNDERFLOW;
+    }
+
+    char* end;
+    errno = 0;
+    unsigned long val = std::strtoul(str, &end, base);
+
+    if (errno == ERANGE || val > UINT32_MAX)
+    {
+        return TO_INT_OVERFLOW;
+    }
+
+    if (*str == '\0' || *end != '\0')
+    {
+        return TO_INT_FAIL;
+    }
+
+    out = (uint32)val;
+    return TO_INT_SUCCESS;
+}
+
+eToIntResult ToUInt(const char* str, uint32 size, uint32& out)
+{
+    if (!str || size == 0)
+        return TO_INT_FAIL;
+
+    uint64 result = 0;
+
+    for (uint32 i = 0; i < size; ++i)
+    {
+        char c = str[i];
+
+        if (c < '0' || c > '9')
+            return TO_INT_FAIL;
+
+        result = result * 10 + ((uint32)(c - '0'));
+
+        if (result > UINT32_MAX)
+            return TO_INT_OVERFLOW;
+    }
+
+    out = (uint32)(result);
+    return TO_INT_SUCCESS;
+}
+
+Color ToColor(const string& str, char delim)
+{
+    string removedStr = str;
+    RemoveExtraWhiteSpaces(removedStr);
+
+    auto args = Split(removedStr, delim);
+    if (args.size() < 3)
+    {
+        return Color::New;
+    }
+
+    uint32 r = 255;
+    if (ToUInt(args[0], r) != TO_INT_SUCCESS)
+    {
+        return Color::New;
+    }
+
+    uint32 g = 255;
+    if (ToUInt(args[1], g) != TO_INT_SUCCESS)
+    {
+        return Color::New;
+    }
+
+    uint32 b = 255;
+    if (ToUInt(args[2], b) != TO_INT_SUCCESS)
+    {
+        return Color::New;
+    }
+
+    Color color;
+    color.r = (uint8)r;
+    color.g = (uint8)g;
+    color.b = (uint8)b;
+
+    if (args.size() > 3)
+    {
+        uint32 a = 255;
+        if (ToUInt(args[3], a) != TO_INT_SUCCESS)
+        {
+            return Color::New;
+        }
+
+        color.a = (uint8)a;
+    }
+
+    return color;
+}
+
+int32 ToInt(const string& str)
+{
+    return ToInt(str.c_str());
+}
+
+int32 ToInt(const char* str)
+{
+    if (!str)
+    {
+        return 0;
+    }
+
+    return (int32)std::stol(str);
+}
+
+uint32 ToUInt(const string& str)
+{
+    return ToUInt(str.c_str());
+}
+
+uint32 ToUInt(const char* str)
+{
+    if (!str)
+    {
+        return 0;
+    }
+
+    return (uint32)std::stoul(str);
+}
+
+uint32 CountCharacter(const string& str, char character)
+{
+    return CountCharacter(str.c_str(), character);
+}
+
+uint32 CountCharacter(const char* str, char character)
+{
+    if (!str)
+    {
+        return 0;
+    }
+
+    uint32 count = 0;
+    const char* src = str;
+
+    while (*src)
+    {
+        if (*src == character)
+        {
+            count++;
+        }
+
+        ++src;
+    }
+
+    return count;
+}
+
+bool IsAlpha(char c)
+{
+    return isalpha((unsigned char)c) != 0;
+}
+
+bool IsDigit(char c)
+{
+    return isdigit((unsigned char)c) != 0;
+}
+
+bool IsUpper(char c)
+{
+    return isupper((unsigned char)c) != 0;
+}
+
+bool IsLower(char c)
+{
+    return islower((unsigned char)c) != 0;
+}
+
+bool IsSpace(char c)
+{
+    return isspace((unsigned char)c) != 0;
+}
+
+void ReplaceString(string& str, const string& replaceThis, const string& replaceTo)
+{
+    if (str.empty())
+    {
+        return;
+    }
+
+    int32 pos = 0;
+    while ((pos = str.find(replaceThis, pos)) != -1)
+    {
+        str.replace(pos, replaceThis.length(), replaceTo);
+        pos += replaceTo.length();
+    }
+}
+
+std::vector<string> Split(const string& str, char delim)
+{
+    return Split(str.c_str(), str.size(), delim);
+}
+
+std::vector<string> Split(const char* str, uint32 size, char delim)
+{
+    const char* strEnd = str + size;
+    const char* lastDelim = str;
+
+    std::vector<string> token;
+    if (size == 0)
+        return token;
+
+    for (const char* c = str; c != strEnd; ++c)
+    {
+        if (*c == delim)
+        {
+            ptrdiff_t diff = c - lastDelim;
+            token.emplace_back(string(lastDelim, diff));
+            lastDelim = c + 1;
+        }
+    }
+
+    if (lastDelim != strEnd)
+    {
+        ptrdiff_t diff = strEnd - lastDelim;
+        token.emplace_back(string(lastDelim, diff));
+    }
+
+    return token;
+}
+
+std::vector<std::string_view> SplitView(const string& str, char delim)
+{
+    return SplitView(str.c_str(), str.size(), delim);
+}
+
+std::vector<std::string_view> SplitView(const char* str, uint32 size, char delim)
+{
+    std::vector<std::string_view> token;
+
+    const char* strEnd = str + size;
+    const char* lastDelim = str;
+
+    for (const char* c = str; c != strEnd; ++c)
+    {
+        if (*c == delim)
+        {
+            token.emplace_back(lastDelim, c - lastDelim);
+
+            lastDelim = c + 1;
+        }
+    }
+
+    if (lastDelim <= strEnd)
+    {
+        token.emplace_back(lastDelim, strEnd - lastDelim);
+    }
+
+    return token;
+}
+
+string JoinString(const std::vector<string>& strs, const string& delim, uint32 startIdx, uint32 endIdx)
+{
+    if (strs.empty())
+    {
+        return "";
+    }
+
+    if (endIdx == 0 || endIdx > strs.size())
+    {
+        endIdx = strs.size();
+    }
+
+    string ret;
+    for (uint32 i = startIdx; i < endIdx; ++i)
+    {
+        if (i > startIdx)
+        {
+            ret += delim;
+        }
+
+        ret += strs[i];
+    }
+
+    return ret;
+}
+
+void XorCipher(string& data, const string& key)
+{
+    if (key.empty())
+        return;
+
+    for (uint32 i = 0; i < data.size(); ++i)
+    {
+        data[i] ^= key[i % key.size()];
+    }
+}

@@ -1,0 +1,11 @@
+#include "NetEntity.h"
+
+NetEntity::NetEntity(eEntityType type)
+{
+    m_entityID = (uint64(type) << 56) | (++s_netID & 0xFFFFFFFFULL);
+}
+
+uint32 NetEntity::GenerateID()
+{
+    return (++s_netID & 0xFFFFFFFFULL);
+}

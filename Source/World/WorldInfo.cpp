@@ -1,0 +1,84 @@
+#include "WorldInfo.h"
+#include "../Math/Random.h"
+#include "../Utils/StringUtils.h"
+
+bool IsValidWorldName(const string& worldName, bool allowColon)
+{
+    const char* src = worldName.c_str();
+
+    while (*src)
+    {
+        if ((IsAlpha(*src) && IsUpper(*src)) || IsDigit(*src) || (allowColon && *src == ':'))
+        {
+            src++;
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+WorldInfo::WorldInfo() : m_version(14), m_flags(0), m_defaultWeather(0), m_currentWeather(0)
+{
+    m_pTileMgr = new WorldTileManager(this);
+    m_pObjMgr = new WorldObjectManager();
+}
+
+WorldInfo::~WorldInfo()
+{
+    Kill();
+}
+
+void WorldInfo::Kill()
+{
+    SAFE_DELETE(m_pTileMgr);
+    SAFE_DELETE(m_pObjMgr);
+}
+
+bool WorldInfo::Serialize(MemoryBuffer& memBuffer, bool write, bool database, float gameVersion)
+{
+    memBuffer.ReadWrite(m_version, write);
+    memBuffer.ReadWrite(m_flags, write);
+    memBuffer.ReadWriteString(m_name, write);
+
+    if (!m_pTileMgr->Serialize(memBuffer, write, database, this, gameVersion))
+        return false;
+
+    if (!database && gameVersion >= 5.40f) // 5.40 is not the actual value lazy to dig for it
+    {
+        uint32 unk = 0;
+        memBuffer.ReadWrite(unk, write);
+        memBuffer.ReadWrite(unk, write);
+        memBuffer.ReadWrite(unk, write);
+    }
+
+    m_pObjMgr->Serialize(memBuffer, write, database);
+
+    uint16 unused = 0;
+    memBuffer.ReadWrite(m_defaultWeather, write);
+    memBuffer.ReadWrite(unused, write);
+    memBuffer.ReadWrite(m_currentWeather, write);
+    memBuffer.ReadWrite(unused, write);
+
+    uint32 unused2 = 0;
+    memBuffer.ReadWrite(unused2, write);
+    return true;
+}
+
+uint32 WorldInfo::GetMemEstimate(bool database, float gameVersion)
+{
+    uint32 memSize = 0;
+    memSize += sizeof(uint16) + sizeof(m_flags) + 2 + m_name.size();
+    memSize += m_pTileMgr->GetMemEstimate(database, this, gameVersion);
+    memSize += m_pObjMgr->GetMemEstimate();
+    memSize += sizeof(m_defaultWeather) + sizeof(m_currentWeather) + sizeof(uint16) * 2 + sizeof(uint32);
+
+    if (!database && gameVersion > 5.40f)
+    {
+        memSize += sizeof(uint32) * 3;
+    }
+
+    return memSize;
+}

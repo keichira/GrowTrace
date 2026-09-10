@@ -1,0 +1,126 @@
+#pragma once
+
+#include "../Math/Color.h"
+#include "../Math/Vector2.h"
+#include "../Memory/MemoryBuffer.h"
+#include "../Precompiled.h"
+#include "ItemUtils.h"
+
+struct ItemChairInfo
+{
+    uint8 enabled = 0;
+    Vector2Int playerOffset;
+    Vector2Int armPos;
+    Vector2Int armOffset;
+    string armTexture = "";
+};
+
+struct ItemRandomSpriteReplaceInfo
+{
+    uint8 enabled = 0;
+    int32 offsetMod = 0;
+    float chance = 0.0f;
+};
+
+class ItemInfo
+{
+public:
+    ItemInfo();
+
+public:
+    int32 id = 0;
+    uint16 flags = 0;
+    uint8 type = 0;
+
+    union
+    {
+        uint8 material = 0;
+        uint8 clothSleeve;
+    };
+
+    string name = "";
+    string textureFile = "";
+    uint32 textureHash = 0;
+    uint8 visualEffect = 0;
+    int32 cookingTime = -1;
+    uint8 textureX = 0;
+    uint8 textureY = 0;
+    uint8 storage = 0;
+
+    int8 layer = 0;
+    uint8 collisionType = 0;
+    uint8 hp = 0;
+    int32 restoreTime = 0;
+    uint8 bodyPart = 0;
+    int16 rarity = 0;
+    uint8 maxCanHold = 200;
+
+    string extraString = "";
+    uint32 extraStringHash = 0;
+
+    union
+    {
+        int32 animMS = 200;
+        int32 weatherID;
+        int32 petRenderType;
+    };
+
+    string petName = "";
+    string petSubName = "";
+    string petEndName = "";
+    string petPowerName = "";
+
+    uint8 seedBg = 0;
+    uint8 seedFg = 0;
+    uint8 treeBg = 0;
+    uint8 treeFg = 0;
+    Color seedBgColor;
+    Color seedFgColor;
+
+    uint16 seed1 = 0;
+    uint16 seed2 = 0;
+
+    uint32 growTime = 31;
+
+    uint32 fxFlags = 0;
+    string multiAnim1 = "";
+    string overlayTextureFile = "";
+    string multiAnim2 = "";
+
+    Vector2Int dualAnimLayer;
+    uint32 flags2 = 0;
+
+    int32 clientData[15] = {0};
+
+    uint32 tileRange = 0;
+    uint32 pileSize = 0;
+    string customizedPunchParameters = "";
+
+    uint32 extraSlotCounter = 0;
+    uint8 extraSlotBodyParts[9] = {0};
+
+    uint32 lightSourceRange = 0;
+    uint32 variantVersionItem = 0;
+
+    ItemChairInfo chairInfo;
+    string configName = "";
+    int32 otherPlayerHitParticle = 0;
+    uint32 configNameHash = 0;
+
+    ItemRandomSpriteReplaceInfo randomSpriteInfo;
+
+    uint8 hiddenPartsFlags = 0;
+    uint8 canTransform = 0;
+    uint8 slipperyType = 0;
+
+    string description = "No info.";
+
+public:
+    bool HasFlag(uint16 flag) { return (flags & flag) != 0; }
+    bool HasFlag2(uint32 flag) { return (flags2 & flag) != 0; }
+    void Serialize(MemoryBuffer& memBuffer, bool write, bool database, uint16 version);
+    bool IsUnlimited() const { return maxCanHold == 0; }
+};
+
+bool IsMainDoor(int16 itemID);
+bool IsPathMarker(int16 itemID);
