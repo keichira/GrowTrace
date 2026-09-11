@@ -7,6 +7,13 @@ A cross-platform **Growtopia Proxy** with imgui support.
 
 > 📢 **Join our community!** For development updates, support, and discussions, join our **[Discord Server](https://discord.gg/5XjTQm3kRh)**.
 
+## 📸 Screenshots
+
+| | |
+| :---: | :---: |
+| <img src="images/img0.png" width="100%"> | <img src="images/img1.png" width="100%"> |
+| <img src="images/img2.png" width="100%"> | <img src="images/img3.png" width="100%"> |
+
 ---
 ## 🌟 Features
 
@@ -36,7 +43,7 @@ A cross-platform **Growtopia Proxy** with imgui support.
 
 ### 📦 5. Item Database Inspector (`items.dat`)
 - **Complete Item Search**: Search through thousands of game items by ID or name with category-based drop-down filtering.
-- **Detailed Property Inspector**: View properties including material, rarity, max hold limit, storage type, clothing body part, hit points, grow times, and light source ranges.
+- **Detailed Property Inspector**: View details of items.
 - **GTopia Export**: One-click **Copy Definition** to export item definitions in GTopia server configuration format directly to the system clipboard.
 
 ### 💻 6. Terminal Console Logger

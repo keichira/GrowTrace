@@ -1077,7 +1077,7 @@ void GTProxyPanel::RenderPlayerTab()
 
                 ImGui::BeginChild("VariantVectorList", ImVec2(0, varRegionHeight), true);
                 {
-                    const char* varTypeNames[] = {"String", "int32", "UINT", "FLOAT", "Vector2Float", "Vector3Float"};
+                    const char* varTypeNames[] = {"String", "INT", "UINT", "FLOAT", "Vector2Float", "Vector3Float"};
 
                     for (int32 i = 0; i < sPacketVariantFields.size(); ++i)
                     {
