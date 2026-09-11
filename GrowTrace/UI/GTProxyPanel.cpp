@@ -2527,15 +2527,22 @@ void GTProxyPanel::RenderHexView(float width)
                 if (Proton::SerializeFromMem(pExtra, pGamePacket->extraDataSize, varVec, &bytesRead))
                 {
                     string varStr;
-                    for (usize i = 0; i < varVec.size(); ++i)
+
+                    for (int32 i = 0; i < varVec.size(); ++i)
                     {
                         auto& var = varVec[i];
-                        char lineBuf[512];
-                        snprintf(lineBuf, sizeof(lineBuf), "(%s) %s\n", i, UIUtils::GetVariantTypeName(var.GetType()),
-                                 UIUtils::GetVariantValueString(var).c_str());
-                        varStr += lineBuf;
+
+                        varStr += "[";
+                        varStr += UIUtils::GetVariantTypeName(var.GetType());
+                        varStr += "] : ";
+                        varStr += UIUtils::GetVariantValueString(var);
+                        varStr += "\n";
                     }
-                    ImGui::SetClipboardText(varStr.c_str());
+
+                    if (!varStr.empty())
+                    {
+                        ImGui::SetClipboardText(varStr.c_str());
+                    }
                 }
             }
         }
