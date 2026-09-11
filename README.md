@@ -5,7 +5,7 @@
 
 A cross-platform **Growtopia Proxy** with imgui support.
 
-> 📢 **Join our community!** For development updates, support, and discussions, join our **[Discord Server](https://discord.gg/5XjTQm3kRh)**.
+> 📢 **Join our community!** For development updates, support, and discussions, join our **[Discord Server](https://discord.gg/2nZhmQBnA)**.
 
 ## 📸 Screenshots
 
