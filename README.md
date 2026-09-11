@@ -26,7 +26,7 @@ A cross-platform **Growtopia Proxy** with imgui support.
 ### 🐛 2. Packet Sniffer & Hex Inspector
 - **Bidirectional Capture**: Sniff both Client-to-Server (`C2S`) and Server-to-Client (`S2C`) network traffic.
 - **Granular Filtering**: Filter packets by **Net Message Type** (`NET_MESSAGE_GENERIC_TEXT`, `NET_MESSAGE_GAME_MESSAGE`, `NET_MESSAGE_GAME_PACKET`) and specific **Game Update Packet Types**.
-- **Deep Inspection**: View raw packet hex dumps with character mappings and timestamp tracking.
+- **Deep Inspection**: View raw packet hex dumps with character mappings.
 - **VariantVector Disassembly**: Automatic unpacking and structure display for `NET_GAME_PACKET_CALL_FUNCTION` variant vectors.
 
 ### ✈️ 3. Packet Sender
@@ -77,6 +77,20 @@ Once compiled, navigate to the `Runtime/` folder.
 > Run `GrowTrace`
 
 > Run` http_server.py`
+
+---
+
+## 🔗 Connecting Growtopia with GrowTrace
+
+Configure your hosts file
+
+```
+127.0.0.1 www.growtopia1.com
+127.0.0.1 growtopia1.com
+
+127.0.0.1 www.growtopia2.com
+127.0.0.1 growtopia2.com
+```
 
 ---
 
