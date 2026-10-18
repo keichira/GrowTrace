@@ -4,7 +4,7 @@
 #include "../Precompiled.h"
 #include "ItemInfo.h"
 
-#define MAX_SUPPORTED_ITEM_DATA_VERSION 26
+#define MAX_SUPPORTED_ITEM_DATA_VERSION 27
 
 class ItemInfoManager
 {

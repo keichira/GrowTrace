@@ -37,7 +37,7 @@ bool ProxyData::SaveWorld(bool database, string* pOutPath)
     uint32 memEstimate = worldInfo.GetMemEstimate(database);
     MemoryBuffer memBuffer(memEstimate);
 
-    if (!worldInfo.Serialize(memBuffer, true, database, 5.56))
+    if (!worldInfo.Serialize(memBuffer, true, database, 5.58))
         return false;
 
     string fileName = worldInfo.GetWorlName();

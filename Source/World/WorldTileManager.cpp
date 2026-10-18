@@ -51,9 +51,7 @@ bool WorldTileManager::Serialize(MemoryBuffer& memBuffer, bool write, bool datab
                 TileInfo* pTile = &m_tiles[i];
 
                 if (!pTile->HasFlag(TILE_FLAG_HAS_EXTRA_DATA) && !pTile->HasFlag(TILE_FLAG_HAS_PARENT))
-                {
                     continue;
-                }
 
                 extraCount++;
                 memBuffer.Write(i);
@@ -125,6 +123,12 @@ uint32 WorldTileManager::GetMemEstimate(bool database, WorldInfo* pWorld, float 
 
     Serialize(memSize, true, database, pWorld, gameVersion);
     return memSize.GetOffset();
+}
+
+void WorldTileManager::Clear()
+{
+    m_tiles.clear();
+    m_tempTiles.clear();
 }
 
 TileInfo* WorldTileManager::GetTile(const Vector2Int& pos)

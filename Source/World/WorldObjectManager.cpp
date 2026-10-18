@@ -50,6 +50,12 @@ uint32 WorldObjectManager::GetMemEstimate()
     return sizeof(uint32) + sizeof(m_lastObjectID) + m_objects.size() * sizeof(WorldObject);
 }
 
+void WorldObjectManager::Clear()
+{
+    m_objects.clear();
+    m_lastObjectID = 0;
+}
+
 void WorldObjectManager::AddItem(int16 itemID, uint8 count, Vector2Float pos, uint8 flags)
 {
     WorldObject obj;

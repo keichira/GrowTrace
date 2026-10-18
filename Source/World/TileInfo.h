@@ -89,6 +89,14 @@ public:
         return static_cast<T*>(m_pExtraData);
     }
 
+    int32 GetExtraType()
+    {
+        if (!HasExtra())
+            return TILE_EXTRA_TYPE_NONE;
+
+        return m_pExtraData->type;
+    }
+
     bool HasExtra() { return m_pExtraData != nullptr; }
     bool IsTileExtraType(eTileExtraType type);
 

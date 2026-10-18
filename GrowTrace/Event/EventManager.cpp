@@ -321,8 +321,7 @@ bool EventManager::ProcessIncomingPacket(ENetPeer* pPeer, ENetPacket* pOriginalP
                 break;
 
             string strText(textData);
-            if (strText.find("action|quit") != string::npos ||
-                strText.find("action|quit_to_exit") != string::npos) // little hack
+            if (strText.find("action|quit") != string::npos || strText.find("action|quit_to_exit") != string::npos)
             {
                 gProxyData.ClearPlayers();
             }

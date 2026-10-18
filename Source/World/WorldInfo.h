@@ -16,6 +16,7 @@ public:
 
 public:
     void Kill();
+    void Clear();
 
     bool Serialize(MemoryBuffer& memBuffer, bool write, bool database, float gameVersion = 0.0f);
     uint32 GetMemEstimate(bool database, float gameVersion = 0.0f);

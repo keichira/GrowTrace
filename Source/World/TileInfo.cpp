@@ -13,19 +13,6 @@ TileInfo::~TileInfo()
 
 bool TileInfo::Serialize(MemoryBuffer& memBuffer, bool write, bool database, uint16 worldVersion)
 {
-    // little hacking around
-    if (m_tileData->fg == 3760 && write && database)
-    {
-        int16 newFG = ITEM_ID_BEDROCK;
-        memBuffer.ReadWrite(newFG, write);
-        memBuffer.ReadWrite(m_tileData->bg, write);
-        memBuffer.ReadWrite(m_tileData->parent, write);
-
-        newFG = 0;
-        memBuffer.ReadWrite(newFG, write);
-        return true;
-    }
-
     if (!database)
     {
         memBuffer.ReadWrite(m_tileData->fg, write);
@@ -57,7 +44,7 @@ bool TileInfo::Serialize(MemoryBuffer& memBuffer, bool write, bool database, uin
             if (!pItem)
                 return false;
 
-            uint8 tileExtraType = GetTileExtraType(pItem->type);
+            uint8 tileExtraType = GetTileExtraTypeByItem(pItem->id, pItem->type);
             if (tileExtraType != TILE_EXTRA_TYPE_NONE)
             {
                 m_pExtraData = CreateTileExtra(tileExtraType);
@@ -69,13 +56,6 @@ bool TileInfo::Serialize(MemoryBuffer& memBuffer, bool write, bool database, uin
             }
             else
             {
-                // little hack again
-                if (m_tileData->fg == 3760)
-                {
-                    memBuffer.Seek(memBuffer.GetOffset() + 21);
-                    return true;
-                }
-
                 LOGGER_LOG_ERROR("Failed tile serialization unknown tile extra for item: %d, type: %d, flags: %d",
                                  m_tileData->fg, pItem->type, m_tileData->flags);
                 return false;

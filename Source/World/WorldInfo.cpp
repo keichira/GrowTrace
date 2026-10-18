@@ -37,8 +37,21 @@ void WorldInfo::Kill()
     SAFE_DELETE(m_pObjMgr);
 }
 
+void WorldInfo::Clear()
+{
+    m_currentWeather = 0;
+    m_defaultWeather = 0;
+    m_flags = 0;
+    m_name = "";
+    m_pTileMgr->Clear();
+    m_pObjMgr->Clear();
+}
+
 bool WorldInfo::Serialize(MemoryBuffer& memBuffer, bool write, bool database, float gameVersion)
 {
+    if (!write)
+        Clear();
+
     memBuffer.ReadWrite(m_version, write);
     memBuffer.ReadWrite(m_flags, write);
     memBuffer.ReadWriteString(m_name, write);
@@ -73,7 +86,11 @@ uint32 WorldInfo::GetMemEstimate(bool database, float gameVersion)
     memSize += sizeof(uint16) + sizeof(m_flags) + 2 + m_name.size();
     memSize += m_pTileMgr->GetMemEstimate(database, this, gameVersion);
     memSize += m_pObjMgr->GetMemEstimate();
-    memSize += sizeof(m_defaultWeather) + sizeof(m_currentWeather) + sizeof(uint16) * 2 + sizeof(uint32);
+
+    if (m_version > 2)
+    {
+        memSize += sizeof(m_defaultWeather) + sizeof(m_currentWeather) + sizeof(uint16) * 2 + sizeof(uint32);
+    }
 
     if (!database && gameVersion > 5.40f)
     {

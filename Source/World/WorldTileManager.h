@@ -16,6 +16,7 @@ public:
 public:
     bool Serialize(MemoryBuffer& memBuffer, bool write, bool database, WorldInfo* pWorld, float gameVersion = 0.0f);
     uint32 GetMemEstimate(bool database, WorldInfo* pWorld, float gameVersion);
+    void Clear();
 
     Vector2Int& GetSize() { return m_size; }
     void SetSize(const Vector2Int& size) { m_size = size; }

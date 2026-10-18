@@ -193,6 +193,12 @@ void ItemInfo::Serialize(MemoryBuffer& memBuffer, bool write, bool database, uin
         uint8 unk = 0;
         memBuffer.ReadWrite(unk, write);
     }
+
+    if (version > 26)
+    {
+        string unk;
+        memBuffer.ReadWriteString(unk, write);
+    }
 }
 
 bool IsMainDoor(int16 itemID)

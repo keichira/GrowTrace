@@ -1405,8 +1405,7 @@ void GTProxyPanel::RenderDroppedObjectsSection(float height)
     uint32 totalObjCount = 0;
     if (gProxyData.hasWorldLoaded && gProxyData.worldInfo.GetObjectManager())
     {
-        RectFloat fullMapRect(-1000.0f, -1000.0f, 100000.0f, 100000.0f);
-        totalObjCount = gProxyData.worldInfo.GetObjectManager()->GetCounfOfObjestsInRect(fullMapRect);
+        totalObjCount = gProxyData.worldInfo.GetObjectManager()->GetObjects().size();
     }
 
     ImGui::TextColored(ImVec4(0.35f, 0.75f, 1.00f, 1.00f), ICON_FA_OBJECT_GROUP " Dropped Objects (%u)", totalObjCount);

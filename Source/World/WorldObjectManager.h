@@ -37,6 +37,8 @@ public:
 public:
     void Serialize(MemoryBuffer& memBuffer, bool write, bool database);
     uint32 GetMemEstimate();
+    void Clear();
+
     void AddItem(int16 itemID, uint8 count, Vector2Float pos, uint8 flags = 0);
     void ModifyItem(uint32 objectID, int16 itemID, uint8 count, Vector2Float pos, uint8 flags);
     void DeleteByID(uint32 objectID);
