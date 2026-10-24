@@ -21,6 +21,12 @@ const char* GetMessageTypeName(eMessagePacketType type)
             return "CLIENT_LOG_REQUEST";
         case NET_MESSAGE_CLIENT_LOG_RESPONSE:
             return "CLIENT_LOG_RESPONSE";
+        case NET_MESSAGE_WORLD_SNAPSHOT_STATE:
+            return "WORLD_SNAPSHOT_STATE";
+        case NET_MESSAGE_WORLD_SNAPSHOT_EVENT:
+            return "WORLD_SNAPSHOT_EVENT";
+        case NET_MESSAGE_WORLD_SNAPSHOT_INPUT:
+            return "WORLD_SNAPSHOT_INPUT";
         default:
             return "UNKNOWN";
     }

@@ -1759,7 +1759,7 @@ void GTProxyPanel::RenderItemDataTab()
                     ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 150.0f);
                     ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-                    DrawPropRow("Type", "%s", GetItemInfoTypeName(pItem->type));
+                    DrawPropRow("Type", "%s (%u)", GetItemInfoTypeName(pItem->type), pItem->type);
                     DrawPropRow("Material", "%s (%u)", GetItemMaterialRawStr(pItem->material), pItem->material);
                     DrawPropRow("Rarity", "%d", pItem->rarity);
                     DrawPropRow("Max Can Hold", "%u %s", pItem->maxCanHold,

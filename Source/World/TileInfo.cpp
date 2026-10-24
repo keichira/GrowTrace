@@ -42,7 +42,10 @@ bool TileInfo::Serialize(MemoryBuffer& memBuffer, bool write, bool database, uin
         {
             ItemInfo* pItem = GetItemInfoManager()->GetItemByID(m_tileData->fg);
             if (!pItem)
+            {
+                LOGGER_LOG_ERROR("Failed to get tile item %d", m_tileData->fg);
                 return false;
+            }
 
             uint8 tileExtraType = GetTileExtraTypeByItem(pItem->id, pItem->type);
             if (tileExtraType != TILE_EXTRA_TYPE_NONE)

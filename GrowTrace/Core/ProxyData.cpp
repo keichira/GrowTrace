@@ -13,7 +13,7 @@ bool ProxyData::LoadWorld(const uint8* pData, usize size)
 
     MemoryBuffer memBuffer(pData, size);
 
-    if (!worldInfo.Serialize(memBuffer, false, false, 5.56))
+    if (!worldInfo.Serialize(memBuffer, false, false, 5.61)) // doesnt matter unless its lower than 5.41 but yeah
     {
         hasWorldLoaded = false;
         return false;
